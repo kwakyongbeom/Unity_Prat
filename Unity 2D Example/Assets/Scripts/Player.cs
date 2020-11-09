@@ -83,4 +83,28 @@ public class Player : MonoBehaviour
         }
      
     }
+    private void OnCollisionEnter2D(Collision2D collision)//충돌 발생 시
+    {
+        if(collision.gameObject.tag=="Enemy") //부딪힌 놈의 tag가 "Enemy"면
+        {
+            OnDamaged(collision.transform.position);// OnDamaged 함수가 실행되면서 파라미터로는 부딪힌놈의 좌표를 넘겨줌
+        }
+    }
+   void OnDamaged(Vector2 targetPos)
+    {
+        gameObject.layer = 11;//Layer를 11번(PlayerDamaged)로 바꿈 [무적모드]
+        sRenderer.color = new Color(1, 1, 1, 0.4f);//반투명
+
+        int dirc = transform.position.x - targetPos.x > 0 ? 1 : -1;//Player와 Enemy의 충돌 값이 0보다 크면 왼쪽[플레이어 기준]에서 충돌 했으므로 1[튕겨나갈방향:오른쪽] 아니면 오른쪽에서 충돌 했으므로 -1[튕겨나갈방향:왼쪽]
+        rigid.AddForce(new Vector2(dirc, 1) * 7, ForceMode2D.Impulse);//전해진 튕겨나갈 방향에 7배로 팅겨 나간다  
+
+        Invoke("OffDamaged", 3); //3초후 무적모드 해제
+    }
+
+    void OffDamaged() //데미지 받은 상태 해제,무적 모드 해제
+    {
+        
+        gameObject.layer = 10;// layer를 11[PlayerDamaged] -> 10[Player]로 변경 
+        sRenderer.color = new Color(1, 1, 1, 1);//원래대로 
+    }
 }

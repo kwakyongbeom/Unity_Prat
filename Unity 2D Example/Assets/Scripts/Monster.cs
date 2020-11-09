@@ -35,7 +35,7 @@ public class Monster : MonoBehaviour
         nextMove = Random.Range(-1, 2); // -1~1 까지
 
      
-        anim.SetInteger("Walk Speed", nextMove);//animator의 상태를 변경하기위해 Walk Speed의 값을 바꿔준다 
+        anim.SetInteger("WalkSpeed", nextMove);//animator의 상태를 변경하기위해 Walk Speed의 값을 바꿔준다 
         if(nextMove!=0)
         {
             spriteRenderer.flipX = nextMove == 1;//nextMove가 1이면 실행하고 -면 실행 x  
