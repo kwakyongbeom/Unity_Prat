@@ -8,6 +8,7 @@ public class Monster : MonoBehaviour
     public int nextMove;
     Animator anim;
     SpriteRenderer spriteRenderer;
+    BoxCollider2D boxcollider;
     // Start is called before the first frame update
     void Awake()
     {
@@ -15,6 +16,7 @@ public class Monster : MonoBehaviour
         rigid = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         Invoke("Think", 5); // 5초 후 Think 라는 이름의 함수 실행
+        boxcollider = GetComponent<BoxCollider2D>();
     }
 
     // Update is called once per frame
@@ -35,7 +37,7 @@ public class Monster : MonoBehaviour
         nextMove = Random.Range(-1, 2); // -1~1 까지
 
      
-        anim.SetInteger("WalkSpeed", nextMove);//animator의 상태를 변경하기위해 Walk Speed의 값을 바꿔준다 
+        anim.SetInteger("Walk", nextMove);//animator의 상태를 변경하기위해 Walk Speed의 값을 바꿔준다 
         if(nextMove!=0)
         {
             spriteRenderer.flipX = nextMove == 1;//nextMove가 1이면 실행하고 -면 실행 x  
@@ -50,5 +52,18 @@ public class Monster : MonoBehaviour
         spriteRenderer.flipX = nextMove == 1;//nextMove가 1이면 실행하고 -면 실행 x  
         CancelInvoke();//현재 기다리고 있는 Invoke 캔슬 
         Invoke("Think", 5);//다시 실행 
+    }
+    public void OnDamaged()
+    {
+        spriteRenderer.color = new Color(1, 1, 1, 0.4f);//몬스터 반투명
+        spriteRenderer.flipY = true;//개구리처럼 뒤집어짐 
+        boxcollider.enabled = false;// collider 비활성화 즉 물리 작용이 없어지면서 떨어짐
+        rigid.AddForce(Vector2.up * 5, ForceMode2D.Impulse);//살짝 점프
+        Invoke("DeActive", 5);//비활성화 로직은 시간차를 두어 실행
+         
+    }
+    void DeActive()
+    {
+        gameObject.SetActive(false);//완전히 비활성화되어 사라짐 
     }
 }

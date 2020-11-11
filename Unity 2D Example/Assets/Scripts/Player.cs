@@ -4,17 +4,29 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+
+    public AudioClip audioJump;// 점프 clip
+    public AudioClip audioAttack; //공격 clip
+    public AudioClip audioDamaged;//데미지 clip
+    public AudioClip audioItem;//아이템 획득 clip
+    public AudioClip audioDie;//죽음 clip
+    public AudioClip audioFinish;//성공 clip 
+    public GameManager gameManager;//Game 전체적인관리를 위해서 Manager생산  
     public float maxSpeed;
-    public float jumPower;
+    public float jumpPower;
     Rigidbody2D rigid;
     SpriteRenderer sRenderer;
+    BoxCollider2D boxcollider;
     Animator anim;
+    AudioSource audioSource;
     // Start is called before the first frame update
     void Awake()
     {
         rigid = GetComponent<Rigidbody2D>();
         sRenderer = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
+        boxcollider = GetComponent<BoxCollider2D>();
+        audioSource = GetComponent<AudioSource>();
     }
 
     private void Update() //보통 키의 입력에 의한 상태변화가 담겨 있음 
@@ -27,16 +39,20 @@ public class Player : MonoBehaviour
         }
 
         
-        if(Input.GetButtonDown("Horizontal")) //만약 x축 방향 버튼이 눌려지면  A,D ,<- ->
+        if(Input.GetButton("Horizontal")) //만약 x축 방향 버튼이 눌려지면  A,D ,<- ->
         {
             
             sRenderer.flipX = Input.GetAxisRaw("Horizontal") == -1;//만약 현재 보고있는 방향과 반대방향의 키가 입력되면 flipX가 발동되어 방향 전환 
             
         }
+
+
         if (Input.GetButtonUp("Jump")&& !anim.GetBool("isJumping")) //만약 Space bar 눌려지고 현재 상태가 점프 상태가 아니라면[무한 점프 방지]  
         {
-            rigid.AddForce(Vector2.up * jumPower, ForceMode2D.Impulse); //Up 방향으로 점프 진행
+            rigid.AddForce(Vector2.up * jumpPower, ForceMode2D.Impulse); //Up 방향으로 점프 진행
             anim.SetBool("isJumping", true); //isJumping 변수 값을 true로 변경
+            PlaySound("JUMP"); //점프상황 재생 함수 실행
+           
 
         }
 
@@ -76,7 +92,7 @@ public class Player : MonoBehaviour
                
                 if (rayHit.distance < 0.5f) //Ray의 거리가 0.3보다 작으면 
                 {
-                    Debug.Log("NN");
+                    
                     anim.SetBool("isJumping", false);//isJumping이라는 Boolean 변수를 false로 바꿈 
                 }
             }
@@ -87,11 +103,38 @@ public class Player : MonoBehaviour
     {
         if(collision.gameObject.tag=="Enemy") //부딪힌 놈의 tag가 "Enemy"면
         {
-            OnDamaged(collision.transform.position);// OnDamaged 함수가 실행되면서 파라미터로는 부딪힌놈의 좌표를 넘겨줌
+            //Attack
+            if(rigid.velocity.y<0&&transform.position.y>collision.transform.position.y)//만약 y축 velocity가 -값(떨어지는 중),충돌시 Player의 y좌표가 충돌한 Enemy의 y좌표보다 크다면(밞음, 즉 Attack)
+            {
+                onAttack(collision.transform);
+            }
+            else//Damanged
+            {
+                OnDamaged(collision.transform.position);// OnDamaged 함수가 실행되면서 파라미터로는 부딪힌놈의 좌표를 넘겨줌
+            }
+            
         }
     }
-   void OnDamaged(Vector2 targetPos)
+
+    private void OnTriggerEnter2D(Collider2D collision)//isTrigger가 체크가 되어있는 놈이 부딪혔을 때
     {
+        if(collision.gameObject.tag=="Coin")// 그놈의 tag가 Coin일때
+        {
+            gameManager.stagePoint += 100;
+            collision.gameObject.SetActive(false);//비활성화
+            PlaySound("ITEM"); //아이템상황 재생 함수 실행
+        }
+        else if(collision.gameObject.tag=="End")//부딪힌 놈이 tag가 Finish면 
+        {
+            gameManager.NextStage();
+            PlaySound("FINISH"); //성공상황 재생 함수 실행
+        }
+    }
+    void OnDamaged(Vector2 targetPos)
+    {
+        gameManager.HealthDown();//데미지 입을때 -1 됨
+        PlaySound("DAMAGED"); //데미지상황 재생 함수 실행
+
         gameObject.layer = 11;//Layer를 11번(PlayerDamaged)로 바꿈 [무적모드]
         sRenderer.color = new Color(1, 1, 1, 0.4f);//반투명
 
@@ -106,5 +149,51 @@ public class Player : MonoBehaviour
         
         gameObject.layer = 10;// layer를 11[PlayerDamaged] -> 10[Player]로 변경 
         sRenderer.color = new Color(1, 1, 1, 1);//원래대로 
+    }
+    void onAttack(Transform enemy)
+    {
+        rigid.AddForce(Vector2.up * 5, ForceMode2D.Impulse);//반발략 Reaction Force
+        PlaySound("ATTACK"); //공격상황 재생 함수 실행
+        Monster monster = enemy.GetComponent<Monster>();
+        monster.OnDamaged();//Player는 공격이지만 Monster입장에서는 damage 받은 것
+        gameManager.stagePoint += 150;
+    }
+ 
+    public void OnDie()
+    {
+        PlaySound("DIE"); //점프상황 재생 함수 실행
+        sRenderer.color = new Color(1, 1, 1, 0.4f);//몬스터 반투명
+        sRenderer.flipY = true;//개구리처럼 뒤집어짐 
+        boxcollider.enabled = false;// collider 비활성화 즉 물리 작용이 없어지면서 떨어짐
+    }
+
+    public void VelocityZero()
+    {
+        rigid.velocity = Vector2.zero; //낙하 속도를 0으로
+    }
+    void PlaySound(string action) //상황마다 해당 소리 재생
+    {
+        switch(action)
+        {
+            case "JUMP":
+                audioSource.clip = audioJump;
+                break;
+            case"ATTACK":
+                audioSource.clip = audioAttack;
+                break;
+            case "DAMAGED":
+                audioSource.clip = audioDamaged;
+                break;
+            case "ITEM":
+                audioSource.clip = audioItem;
+                break;
+            case "DIE":
+                audioSource.clip = audioDie;
+                break;
+            case "FINISH":
+                audioSource.clip = audioFinish;
+                break;
+        }
+        audioSource.Play();
     }
 }

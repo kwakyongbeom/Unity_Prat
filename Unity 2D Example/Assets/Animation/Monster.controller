@@ -36,7 +36,7 @@ AnimatorController:
   m_Name: Monster
   serializedVersion: 5
   m_AnimatorParameters:
-  - m_Name: WalkSpeed
+  - m_Name: Walk
     m_Type: 3
     m_DefaultFloat: 0
     m_DefaultInt: 0
@@ -115,8 +115,8 @@ AnimatorStateTransition:
   m_PrefabAsset: {fileID: 0}
   m_Name: 
   m_Conditions:
-  - m_ConditionMode: 2
-    m_ConditionEvent: isWalking
+  - m_ConditionMode: 6
+    m_ConditionEvent: Walk
     m_EventTreshold: 0
   - m_ConditionMode: 6
     m_ConditionEvent: WalkSpeed
@@ -127,9 +127,9 @@ AnimatorStateTransition:
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0
-  m_TransitionOffset: 1.6123765
-  m_ExitTime: 0.57142854
+  m_TransitionDuration: 0.061884686
+  m_TransitionOffset: 0.015753338
+  m_ExitTime: 0.0000000025662192
   m_HasExitTime: 0
   m_HasFixedDuration: 1
   m_InterruptionSource: 0
@@ -143,8 +143,8 @@ AnimatorStateTransition:
   m_PrefabAsset: {fileID: 0}
   m_Name: 
   m_Conditions:
-  - m_ConditionMode: 1
-    m_ConditionEvent: isWalking
+  - m_ConditionMode: 7
+    m_ConditionEvent: Walk
     m_EventTreshold: 0
   - m_ConditionMode: 7
     m_ConditionEvent: WalkSpeed
@@ -156,7 +156,7 @@ AnimatorStateTransition:
   m_IsExit: 0
   serializedVersion: 3
   m_TransitionDuration: 0
-  m_TransitionOffset: 0.09192281
+  m_TransitionOffset: 0.08426257
   m_ExitTime: 0.25000006
   m_HasExitTime: 0
   m_HasFixedDuration: 1
